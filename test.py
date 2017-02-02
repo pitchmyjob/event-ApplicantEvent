@@ -17,6 +17,6 @@ for res in response['Items']:
     print(res['event'])
     event = {
         'uuid': res['uuid'],
-        'dev': True
+        'setting': "dev"
     }
     lambda_handler(event, None)
