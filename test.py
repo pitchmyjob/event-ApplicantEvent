@@ -5,7 +5,7 @@ from boto3.dynamodb.conditions import Key, Attr
 
 session = boto3.session.Session(region_name="eu-west-1")
 dynamodb = session.resource('dynamodb')
-table = dynamodb.Table('dev-EventLog')
+table = dynamodb.Table('EventLog-dev')
 
 response = table.scan(
     IndexName="type-timestamp-index"

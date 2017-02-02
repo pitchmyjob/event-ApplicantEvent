@@ -6,13 +6,19 @@ from datetime import datetime
 
 class ApplicantEvent(object):
     host = ""
+
     def __init__(self, uuid, setting):
         dynamodb = boto3.session.Session(region_name="eu-west-1").resource('dynamodb')
         self.body = None
         self.uuid = uuid
 
         if setting == "dev" :
+            self.host = "https://search-matching-dev-qpd5t33mknnt2p6njeyah4kvku.eu-west-1.es.amazonaws.com/"
+            self.table = dynamodb.Table('EventLog-dev')
+
+        if setting == "staging" :
             self.host = "https://search-dev-matching-7sf5ei2xjansnkgsagjlrodagm.eu-west-1.es.amazonaws.com/"
+            self.table = dynamodb.Table('EventLog-staging')
 
         self.es = Elasticsearch(
             [self.host],
@@ -20,7 +26,6 @@ class ApplicantEvent(object):
             verify_certs=True,
             connection_class=RequestsHttpConnection
         )
-        self.table = dynamodb.Table('dev-EventLog')
 
         res = self.table.get_item(Key={'type': 'ApplicantEvent', 'uuid': self.uuid })
         self.event = res['Item']
