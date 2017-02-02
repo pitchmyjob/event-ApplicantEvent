@@ -6,12 +6,12 @@ from datetime import datetime
 
 class ApplicantEvent(object):
     host = ""
-    def __init__(self, uuid, dev=False):
+    def __init__(self, uuid, setting):
         dynamodb = boto3.session.Session(region_name="eu-west-1").resource('dynamodb')
         self.body = None
         self.uuid = uuid
 
-        if dev :
+        if setting == "dev" :
             self.host = "https://search-dev-matching-7sf5ei2xjansnkgsagjlrodagm.eu-west-1.es.amazonaws.com/"
 
         self.es = Elasticsearch(
@@ -147,7 +147,4 @@ class ApplicantEvent(object):
 
 
 def lambda_handler(event, context):
-    if 'dev' in event:
-        ApplicantEvent(uuid=event['uuid'], dev=True)
-    else:
-        ApplicantEvent(uuid=event['uuid'])
+    ApplicantEvent(uuid=event['uuid'], setting=event['setting'])
