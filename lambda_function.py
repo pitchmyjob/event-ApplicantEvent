@@ -17,7 +17,7 @@ class ApplicantEvent(object):
             self.table = dynamodb.Table('EventLog-dev')
 
         if setting == "staging" :
-            self.host = "https://search-dev-matching-7sf5ei2xjansnkgsagjlrodagm.eu-west-1.es.amazonaws.com/"
+            self.host = "https://search-matching-staging-v3cwpk2gdg3zxi5e67c25tusxi.eu-west-1.es.amazonaws.com/"
             self.table = dynamodb.Table('EventLog-staging')
 
         self.es = Elasticsearch(
