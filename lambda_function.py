@@ -44,12 +44,14 @@ class ApplicantEvent(object):
             self.body = {}
 
 
+    def applicantwasdeleted(self):
+        self.es.delete(index="matching", doc_type="applicant", id=self.event['id'])
+
     def applicantwasmodified(self):
         self.get_index_es()
         del self.event['payload']['id']
         for key, item in self.event['payload'].items():
             self.body[key] = item
-
 
     def applicantwasadded(self):
         self.body = {
