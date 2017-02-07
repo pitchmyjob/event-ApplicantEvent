@@ -6,6 +6,7 @@ from datetime import datetime
 
 class ApplicantEvent(object):
     host = ""
+    push_es = True
 
     def __init__(self, uuid, setting):
         dynamodb = boto3.session.Session(region_name="eu-west-1").resource('dynamodb')
@@ -34,6 +35,7 @@ class ApplicantEvent(object):
         if method:
             method()
             self.save()
+            self.save_es()
 
 
     def get_index_es(self):
@@ -46,6 +48,7 @@ class ApplicantEvent(object):
 
     def applicantwasdeleted(self):
         self.es.delete(index="matching", doc_type="applicant", id=self.event['id'])
+        self.push_es = False
 
     def applicantwasmodified(self):
         self.get_index_es()
@@ -61,6 +64,7 @@ class ApplicantEvent(object):
             "email": self.event['payload']['email'],
             "date_created" : datetime.now()
         }
+
 
     def experiencewasadded(self):
         self.added("experiences")
@@ -137,10 +141,12 @@ class ApplicantEvent(object):
                 self.event['payload']
             ]
 
+    def save_es(self):
+        if self.push_es:
+            self.body["last_modified"] = datetime.now()
+            self.es.index(index="matching", doc_type="applicant", id=self.event['id'], body=self.body)
 
     def save(self):
-        self.body["last_modified"] = datetime.now()
-        self.es.index(index="matching", doc_type="applicant", id=self.event['id'], body=self.body)
         self.table.update_item(
             Key={
                 'type': 'ApplicantEvent',
