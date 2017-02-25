@@ -7,6 +7,7 @@ from datetime import datetime
 class ApplicantEvent(object):
     host = ""
     push_es = True
+    location = ("address", "latitude", "longitude", "street_number", "route", "cp", "locality", "administrative_area_level_1", "administrative_area_level_2", "country")
 
     def __init__(self, uuid, setting):
         dynamodb = boto3.session.Session(region_name="eu-west-1").resource('dynamodb')
@@ -54,7 +55,12 @@ class ApplicantEvent(object):
         self.get_index_es()
         del self.event['payload']['id']
         for key, item in self.event['payload'].items():
-            self.body[key] = item
+            if key in self.location :
+                location = self.body['location'] if "location" in self.body else {}
+                location[key] = item
+                self.body["location"] = location
+            else:
+                self.body[key] = item
 
     def applicantwasadded(self):
         self.body = {
