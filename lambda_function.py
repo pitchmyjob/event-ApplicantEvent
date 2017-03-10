@@ -1,5 +1,6 @@
 import boto3
 import json
+import os
 from elasticsearch import Elasticsearch, RequestsHttpConnection
 from boto3.dynamodb.conditions import Key, Attr
 from datetime import datetime
@@ -9,18 +10,13 @@ class ApplicantEvent(object):
     push_es = True
     location = ("address", "latitude", "longitude", "street_number", "route", "cp", "locality", "administrative_area_level_1", "administrative_area_level_2", "country")
 
-    def __init__(self, uuid, setting):
-        dynamodb = boto3.session.Session(region_name="eu-west-1").resource('dynamodb')
+    def __init__(self, uuid):
+        dynamodb = boto3.session.Session().resource('dynamodb')
         self.body = None
         self.uuid = uuid
 
-        if setting == "dev" :
-            self.host = "https://search-matching-dev-qpd5t33mknnt2p6njeyah4kvku.eu-west-1.es.amazonaws.com/"
-            self.table = dynamodb.Table('EventLog-dev')
-
-        if setting == "staging" :
-            self.host = "https://search-matching-staging-v3cwpk2gdg3zxi5e67c25tusxi.eu-west-1.es.amazonaws.com/"
-            self.table = dynamodb.Table('EventLog-staging')
+        self.host = os.environ["NAME_ES_DOMAIN"]
+        self.table = dynamodb.Table(os.environ["NAME_DYNAMODB_TABLE"])
 
         self.es = Elasticsearch(
             [self.host],
@@ -37,6 +33,7 @@ class ApplicantEvent(object):
             method()
             self.save()
             self.save_es()
+
 
 
     def get_index_es(self):
@@ -166,4 +163,4 @@ class ApplicantEvent(object):
 
 
 def lambda_handler(event, context):
-    ApplicantEvent(uuid=event['uuid'], setting=event['setting'])
+    ApplicantEvent(uuid=event['uuid'])

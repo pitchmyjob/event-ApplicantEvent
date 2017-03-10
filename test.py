@@ -7,16 +7,23 @@ session = boto3.session.Session(region_name="eu-west-1")
 dynamodb = session.resource('dynamodb')
 table = dynamodb.Table('EventLog-dev')
 
+
 response = table.scan(
-    IndexName="type-timestamp-index"
+    IndexName="type-timestamp-index",
+    FilterExpression=Attr('type').eq("ApplicantEvent")
 )
 
+while response.get('LastEvaluatedKey'):
+    for res in response['Items']:
+        print(res['event'])
+        event = {
+            'uuid': res['uuid'],
+            'setting': "dev"
+        }
+        lambda_handler(event, None)
 
-
-for res in response['Items']:
-    print(res['event'])
-    event = {
-        'uuid': res['uuid'],
-        'setting': "dev"
-    }
-    lambda_handler(event, None)
+    response = table.scan(
+        IndexName="type-timestamp-index",
+        FilterExpression=Attr('type').eq("ApplicantEvent"),
+        ExclusiveStartKey = response.get('LastEvaluatedKey')
+    )
